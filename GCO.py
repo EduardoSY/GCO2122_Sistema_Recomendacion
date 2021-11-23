@@ -1,34 +1,67 @@
+# Autor: Eduardo Da Silva Yanes
+# TO DO
+# --- Metricas:
+# 1 Correlacion Pearson - DONE
+# 2 Distancia coseno - Proceso
+#     Falta estandarizar las distancias
+# 3 Distancia euclidea - Proceso
+#     Falta estandarizar las distancias
+
+# --- Num vecinos - Done
+# --- Tipo Prediccion:
+# 1 Prediccion simple
+# 2 Diferencia con la media
+
 import argparse
 import math
+from copy import deepcopy
 #Con type(variable) puedo ver el tipo de la variable.
 #reduce hace magia
 
 parser = argparse.ArgumentParser(description='Analisis de un sistema recomendador')
 parser.add_argument('file', type=argparse.FileType('r'))
-#parser.add_argument('metrica') #Luego analizo si tiene sentido o no
+parser.add_argument('metrica',
+                    choices=['pearson', 'euclidea', 'coseno']) #Luego analizo si tiene sentido o no
 
 parser.add_argument('neighbors', type=int,
                     help="Indica el numero de vecinos a considerar en el analisis")
 
-#parser.add_argument('produccion')
+parser.add_argument('prediccion', 
+                    choices=['simple', 'media'])
 
 args = parser.parse_args()
 
 #Lectura del fichero
 matriz_fichero = args.file.readlines() # Devuelve un vector de strings
 matriz = []
-
+usuarios_predecir = []
 for i in matriz_fichero:
     linea = i.split()
     lineaux = []
+    necesita_predecir = False
     for j in linea:
         if j != '-':
             aux = int(j)
         else:
             aux = j
+            necesita_predecir = True
         lineaux.append(aux)
+    if(necesita_predecir == True):
+        usuarios_predecir.append(len(matriz))    
     matriz.append(lineaux)
-print(matriz)
+
+""" # Imprimo la matriz
+for line in matriz:
+    print ('  '.join(map(str, line)))
+
+
+#print(matriz)
+print "---"
+print usuarios_predecir
+print "_-_-_" """
+
+matriz_similitudes = [ [ None for y in range(len(matriz)) ] for x in range( len(matriz)) ] #Matriz de similitud rellena de ceros
+
 
 def valores_comunes(usuario_u, usuario_v):
     vector_usuario_u = []
@@ -46,15 +79,16 @@ def coef_corr_pearson(usuario_u, usuario_v):
     vector_usuario_u, vector_usuario_v = valores_comunes(usuario_u, usuario_v)
     media_user_u = media(vector_usuario_u)
     media_user_v = media(vector_usuario_v)
-    print "Usuario u media " + str(media_user_u)
-    print "Usuario v media " + str(media_user_v)
+    #print "Usuario u media " + str(media_user_u)
+    #print "Usuario v media " + str(media_user_v)
+    
     numerador = 0
-    raiz_izq = 0
     sum_raiz_izq = 0
-    raiz_der = 0
     sum_raiz_der = 0
     for i in range(len(matriz[usuario_u])):
-        if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i != '-'])): 
+        if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')): 
+            #print type ((matriz[usuario_u][i] - media_user_u))
+            #print matriz[usuario_v][i]
             numerador += ((matriz[usuario_u][i] - media_user_u) * (matriz[usuario_v][i] - media_user_v))
             sum_raiz_izq += (matriz[usuario_u][i] - media_user_u) ** 2
             sum_raiz_der += (matriz[usuario_v][i] - media_user_v) ** 2
@@ -78,11 +112,6 @@ def dist_cos(usuario_u, usuario_v):
     return resultado
 
 
-
-vect1 = [1, 1, 2, 1, 1, 1, 1, 0, 0, 0]
-vect2 = [1, 1, 1, 0, 1, 1, 1, 1, 1, 1]
-
-
 def dist_euclidea(usuario_u, usuario_v):
     resultado = 0
     for i in range(len(matriz[usuario_u])):
@@ -90,8 +119,98 @@ def dist_euclidea(usuario_u, usuario_v):
             resultado += ((matriz[usuario_u][i] - matriz[usuario_v][i])**2)
     resultado = math.sqrt(resultado)
     return resultado
+#Esto hay que normalizarlo porque da mas de 1
+#Los usuarios distantes se parece poco. Los
 
 
-x = coef_corr_pearson(0,1)
-print x
+def calculo_sim(metodo):
+    if (metodo == "pearson"):
+        for i in range(len(matriz)):
+            for j in range(len(matriz)):
+                matriz_similitudes[i][j] = coef_corr_pearson(i, j)
+    elif (metodo == "euclidea"): 
+        print "Usando Euclidea"
+    else:
+        print "Usando coseno"
+ 
+
+#x = coef_corr_pearson(1,0)
+#print x
+
+
+
+def print_matriz():
+  print " MATRIZ DE SIMILITUDES"
+  for i in range(len(matriz)):
+        aux_fila = "[" + str(i) + "] ->  "
+        for j in range(len(matriz)):
+           aux_fila += "{:.4f}".format(matriz_similitudes[i][j])
+           aux_fila += "\t\t"
+        print aux_fila
+
+def calcular_vecinos(neighbors, usuario_x):
+    k_vecinos = []
+    fila_usuario_aux = deepcopy(matriz_similitudes[usuario_x])
+    fila_usuario_aux2 = deepcopy(matriz_similitudes[usuario_x])
+    fila_usuario_aux.sort(reverse=True) #Ya esta modificado
     
+    fila_truncada = fila_usuario_aux[1:neighbors+1]
+    for i in fila_truncada:
+        val_usuario = fila_usuario_aux2.index(i)
+        fila_usuario_aux2[val_usuario] = 'x'
+        k_vecinos.append((val_usuario,i))
+
+    return k_vecinos #Devuelve un par (usuario, similitud)
+
+
+def prediccion_simple(pos_predecir, k_vecinos):
+    numerador = 0
+    denominador = 0
+    for i in k_vecinos:
+        #print (pos_predecir)
+        numerador += (i[1] * matriz[i[0]][pos_predecir])
+
+        
+        denominador += abs(i[1])
+    resultado = numerador / float(denominador)
+    #print resultado
+    return resultado
+
+def prediccion_dif_media(pos_predecir, k_vecinos):
+    vector_usuario_u, vector_usuario_v = valores_comunes(usuario_u, usuario_v)
+    media_user_u = media(vector_usuario_u)
+    media_user_v = media(vector_usuario_v)
+
+
+
+
+
+# calculo_sim("pearson")
+# print_matriz()
+# a = calcular_vecinos(args.neighbors, 0)
+# print a
+
+# Para los vecinos
+# Selecciono la fila y hago un sort
+# Luego escojo los k mejores y los paso a un vector
+# Luego, para saber que vecino ha sido uso index
+
+def main(metrica, prediccion, vecinos):
+    print ("1. Metrica empleada: " + metrica)
+    print ("2. Metodo de prediccion: " + prediccion)
+    print ("3. Numero de vecinos: " + str(vecinos))
+    calculo_sim(metrica)
+    print_matriz()
+    for i in usuarios_predecir:
+        for j in range(len(matriz[i])):
+            if (matriz[i][j] == '-'):
+                if(prediccion == "simple"):
+                    k = calcular_vecinos(vecinos, i)
+                    pred  = prediccion_simple(j, k)
+                    print pred
+                else:
+                    print "La otra kosia"
+
+main(args.metrica , args.prediccion, args.neighbors)
+
+
