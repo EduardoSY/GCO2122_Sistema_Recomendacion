@@ -150,6 +150,15 @@ def calculo_sim(metodo):
 #print x
 
 
+def show_matriz(matrix):
+    for i in range(len(matrix)):
+        aux_fila = "[" + str(i) + "] ->  "
+        for j in range(len(matrix[i])):
+            aux_fila += "{:.2f}".format(matrix[i][j])
+            aux_fila += "\t\t"
+        print aux_fila
+
+
 
 def print_matriz():
   print "---------------------"
@@ -165,6 +174,7 @@ def print_matriz():
 #usuario_x = usuario del que vamos a ver las similitudes
 #pos_calcular = item a calcular valor
 def calcular_vecinos(neighbors, usuario_x, pos_calcular):
+    
     k_vecinos = []
     fila_usuario_ordenar = deepcopy(matriz_similitudes[usuario_x])
     fila_usuario_ordenar.sort(reverse=True) #Ya esta modificado
@@ -182,6 +192,7 @@ def calcular_vecinos(neighbors, usuario_x, pos_calcular):
     for i in cantidad_vecinos:
         valor_similitud = fila_usuario_limpia[i]
         k_vecinos.append((i, valor_similitud))
+    print "Vecinos utilizados para calcular Usuario " + str(usuario_x) + " -> Item " + str(pos_calcular)
     print k_vecinos 
     return k_vecinos #Devuelve un par (usuario, similitud)
 
@@ -202,11 +213,11 @@ def prediccion_simple(pos_predecir, k_vecinos):
 
 def prediccion_dif_media(usuario, pos_predecir, k_vecinos):
     media_usuario = media(matriz[usuario])
-    print "Media usuario: " + str(media_usuario)
+    #print "Media usuario: " + str(media_usuario)
     medias = []
     for i in k_vecinos:
         medias.append(media(matriz[i[0]]))
-    print medias
+    #print medias
 
     numerador = 0
     denominador = 0
@@ -244,6 +255,7 @@ def main(metrica, prediccion, vecinos):
     for i in usuarios_predecir: #Usuarios de los que tenemos que predecir
         for j in range(len(matriz[i])):  #Recorremos buscando posiciones a predecir
             if (matriz_final[i][j] == '-'): #Encontrada posicion a predecir
+                print "----------------------------------"
                 k = calcular_vecinos(vecinos, i, j)
                 if(prediccion == "simple"):
                     pred  = prediccion_simple(j, k)
@@ -255,8 +267,12 @@ def main(metrica, prediccion, vecinos):
                     pred = prediccion_dif_media(i, j, k)
                     matriz_final[i][j] = pred
 
-                    print "Resultado prediccion media: " + str(pred)
+                    print "\nResultado prediccion - Usuario " + str(i) + " -> Item " + str(j) + " = " + str(pred) + "\n"
 
-main(args.metrica , args.prediccion, args.neighbors)
+    return matriz_final
+
+x = main(args.metrica , args.prediccion, args.neighbors)
+print "--- MATRIZ CON LAS PREDICCIONES ---"
+show_matriz(x)
 
 
