@@ -19,4 +19,11 @@ El código implementado para la realización de esta práctica ha sido escrito e
 
 ### Ejemplo de uso
 
+Para usar el programa debemos ejecutar algo similar a lo siguiente: ```python GCO.py "fichero.txt" pearson 5 simple```
+
+- "fichero.txt" es el fichero donde se encuentra la matriz.
+- person es el método usado para calcular la similitud. Las opciones son: pearson, euclidea, coseno
+- 5 es el número de vecinos a considerar
+- simple es el método de prediccion. Las opciones son: simple y media.
+
 A continuación se muestra un ejemplo de uso respecto al software desarrollado.
