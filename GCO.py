@@ -12,11 +12,14 @@
 # 1 Prediccion simple
 # 2 Diferencia con la media
 
+#MickeyHerramientas:
+#Con type(variable) puedo ver el tipo de la variable.
+#reduce hace magia
+
+
 import argparse
 import math
 from copy import deepcopy
-#Con type(variable) puedo ver el tipo de la variable.
-#reduce hace magia
 
 parser = argparse.ArgumentParser(description='Analisis de un sistema recomendador')
 parser.add_argument('file', type=argparse.FileType('r'))
@@ -129,6 +132,9 @@ def calculo_sim(metodo):
             for j in range(len(matriz)):
                 matriz_similitudes[i][j] = coef_corr_pearson(i, j)
     elif (metodo == "euclidea"): 
+        for i in range(len(matriz)):
+            for j in range(len(matriz)):
+                matriz_similitudes[i][j] = dist_cos(i, j)
         print "Usando Euclidea"
     else:
         print "Usando coseno"
@@ -140,7 +146,8 @@ def calculo_sim(metodo):
 
 
 def print_matriz():
-  print " MATRIZ DE SIMILITUDES"
+  print "---------------------"
+  print "MATRIZ DE SIMILITUDES"
   for i in range(len(matriz)):
         aux_fila = "[" + str(i) + "] ->  "
         for j in range(len(matriz)):
@@ -148,18 +155,28 @@ def print_matriz():
            aux_fila += "\t\t"
         print aux_fila
 
-def calcular_vecinos(neighbors, usuario_x):
+#neighbors = cantidad de vecinos a calcular
+#usuario_x = usuario del que vamos a ver las similitudes
+#pos_calcular = item a calcular valor
+def calcular_vecinos(neighbors, usuario_x, pos_calcular):
     k_vecinos = []
-    fila_usuario_aux = deepcopy(matriz_similitudes[usuario_x])
-    fila_usuario_aux2 = deepcopy(matriz_similitudes[usuario_x])
-    fila_usuario_aux.sort(reverse=True) #Ya esta modificado
+    fila_usuario_ordenar = deepcopy(matriz_similitudes[usuario_x])
+    fila_usuario_ordenar.sort(reverse=True) #Ya esta modificado
+    fila_usuario_limpia = deepcopy(matriz_similitudes[usuario_x])
     
-    fila_truncada = fila_usuario_aux[1:neighbors+1]
-    for i in fila_truncada:
-        val_usuario = fila_usuario_aux2.index(i)
-        fila_usuario_aux2[val_usuario] = 'x'
-        k_vecinos.append((val_usuario,i))
+    vecinos_coincidentes = []
+    for elemento in fila_usuario_ordenar:
+        usuario = fila_usuario_limpia.index(elemento) #Obtengo el usuario
+        if(matriz[usuario][pos_calcular] != '-'): #Analiza si ha votado el item
+            vecinos_coincidentes.append(usuario)
 
+    cantidad_vecinos = vecinos_coincidentes[0:neighbors] #Vecinos que se van a usar
+
+    #fila_truncada = fila_usuario_ordenar[0:neighbors+1]
+    for i in cantidad_vecinos:
+        valor_similitud = fila_usuario_limpia[i]
+        k_vecinos.append((i, valor_similitud))
+    print k_vecinos 
     return k_vecinos #Devuelve un par (usuario, similitud)
 
 
@@ -173,7 +190,8 @@ def prediccion_simple(pos_predecir, k_vecinos):
         
         denominador += abs(i[1])
     resultado = numerador / float(denominador)
-    #print resultado
+    resultado_formato = "{:.4f}".format(resultado)
+    resultado = float(resultado_formato)
     return resultado
 
 def prediccion_dif_media(pos_predecir, k_vecinos):
@@ -201,13 +219,14 @@ def main(metrica, prediccion, vecinos):
     print ("3. Numero de vecinos: " + str(vecinos))
     calculo_sim(metrica)
     print_matriz()
-    for i in usuarios_predecir:
-        for j in range(len(matriz[i])):
-            if (matriz[i][j] == '-'):
+    for i in usuarios_predecir: #Usuarios de los que tenemos que predecir
+        for j in range(len(matriz[i])):  #Recorremos buscando posiciones a predecir
+            if (matriz[i][j] == '-'): #Encontrada posicion a predecir
                 if(prediccion == "simple"):
-                    k = calcular_vecinos(vecinos, i)
+                    k = calcular_vecinos(vecinos, i, j)
                     pred  = prediccion_simple(j, k)
-                    print pred
+                    
+                    print "Resultado prediccion: " + str(pred)
                 else:
                     print "La otra kosia"
 
