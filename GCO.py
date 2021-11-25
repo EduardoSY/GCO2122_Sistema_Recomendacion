@@ -76,12 +76,20 @@ def valores_comunes(usuario_u, usuario_v):
     return vector_usuario_u, vector_usuario_v
 
 def media(dataset):
-    return sum(dataset) / float(len(dataset))
+    datos = []
 
+    for i in dataset:
+        if i != '-':
+            datos.append(i)
+    
+    return sum(datos) / float(len(datos))
+
+# Correcto
 def coef_corr_pearson(usuario_u, usuario_v):
     vector_usuario_u, vector_usuario_v = valores_comunes(usuario_u, usuario_v)
     media_user_u = media(vector_usuario_u)
     media_user_v = media(vector_usuario_v)
+    
     #print "Usuario u media " + str(media_user_u)
     #print "Usuario v media " + str(media_user_v)
     
@@ -90,8 +98,6 @@ def coef_corr_pearson(usuario_u, usuario_v):
     sum_raiz_der = 0
     for i in range(len(matriz[usuario_u])):
         if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')): 
-            #print type ((matriz[usuario_u][i] - media_user_u))
-            #print matriz[usuario_v][i]
             numerador += ((matriz[usuario_u][i] - media_user_u) * (matriz[usuario_v][i] - media_user_v))
             sum_raiz_izq += (matriz[usuario_u][i] - media_user_u) ** 2
             sum_raiz_der += (matriz[usuario_v][i] - media_user_v) ** 2
@@ -194,10 +200,23 @@ def prediccion_simple(pos_predecir, k_vecinos):
     resultado = float(resultado_formato)
     return resultado
 
-def prediccion_dif_media(pos_predecir, k_vecinos):
-    vector_usuario_u, vector_usuario_v = valores_comunes(usuario_u, usuario_v)
-    media_user_u = media(vector_usuario_u)
-    media_user_v = media(vector_usuario_v)
+def prediccion_dif_media(usuario, pos_predecir, k_vecinos):
+    media_usuario = media(matriz[usuario])
+    print "Media usuario: " + str(media_usuario)
+    medias = []
+    for i in k_vecinos:
+        medias.append(media(matriz[i[0]]))
+    print medias
+
+    numerador = 0
+    denominador = 0
+    for i in k_vecinos:
+        #print (pos_predecir)
+        numerador += (i[1] * (matriz[i[0]][pos_predecir] - media(matriz[i[0]])))
+        denominador += abs(i[1])
+
+    resultado = media_usuario + (numerador / float(denominador))
+    return resultado
 
 
 
@@ -219,16 +238,24 @@ def main(metrica, prediccion, vecinos):
     print ("3. Numero de vecinos: " + str(vecinos))
     calculo_sim(metrica)
     print_matriz()
+
+    matriz_final = deepcopy(matriz)
+
     for i in usuarios_predecir: #Usuarios de los que tenemos que predecir
         for j in range(len(matriz[i])):  #Recorremos buscando posiciones a predecir
-            if (matriz[i][j] == '-'): #Encontrada posicion a predecir
+            if (matriz_final[i][j] == '-'): #Encontrada posicion a predecir
+                k = calcular_vecinos(vecinos, i, j)
                 if(prediccion == "simple"):
-                    k = calcular_vecinos(vecinos, i, j)
                     pred  = prediccion_simple(j, k)
                     
                     print "Resultado prediccion: " + str(pred)
+                    matriz_final[i][j] = pred
                 else:
-                    print "La otra kosia"
+                    
+                    pred = prediccion_dif_media(i, j, k)
+                    matriz_final[i][j] = pred
+
+                    print "Resultado prediccion media: " + str(pred)
 
 main(args.metrica , args.prediccion, args.neighbors)
 
