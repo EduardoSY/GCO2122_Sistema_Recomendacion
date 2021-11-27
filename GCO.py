@@ -126,10 +126,13 @@ def dist_cos(usuario_u, usuario_v):
 
 def dist_euclidea(usuario_u, usuario_v):
     resultado = 0
+    #contador = 0
     for i in range(len(matriz[usuario_u])):
         if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')):  
             resultado += ((matriz[usuario_u][i] - matriz[usuario_v][i])**2)
+            #contador += 1
     resultado = math.sqrt(resultado)
+    #resultado = resultado / float(contador)
     return resultado
 #Esto hay que normalizarlo porque da mas de 1
 #Los usuarios distantes se parece poco. Los
