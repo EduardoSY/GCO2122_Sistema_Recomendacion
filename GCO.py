@@ -108,11 +108,14 @@ def coef_corr_pearson(usuario_u, usuario_v):
 
 def dist_cos(usuario_u, usuario_v):
     numerador = 0
-    suma_raiz_izq = 0
-    suma_raiz_der = 0
+    sum_raiz_izq = 0
+    sum_raiz_der = 0
     
     for i in range(len(matriz[usuario_u])):
-        if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i != '-'])): 
+        if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')): 
+            # print "---------------------"
+            # print matriz[usuario_u][i]
+            # print matriz[usuario_v][i]
             numerador += matriz[usuario_u][i] * matriz[usuario_v][i]
             sum_raiz_izq += (matriz[usuario_u][i]) ** 2
             sum_raiz_der += (matriz[usuario_v][i]) ** 2
@@ -124,7 +127,7 @@ def dist_cos(usuario_u, usuario_v):
 def dist_euclidea(usuario_u, usuario_v):
     resultado = 0
     for i in range(len(matriz[usuario_u])):
-        if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i != '-'])):  
+        if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')):  
             resultado += ((matriz[usuario_u][i] - matriz[usuario_v][i])**2)
     resultado = math.sqrt(resultado)
     return resultado
@@ -137,13 +140,16 @@ def calculo_sim(metodo):
         for i in range(len(matriz)):
             for j in range(len(matriz)):
                 matriz_similitudes[i][j] = coef_corr_pearson(i, j)
-    elif (metodo == "euclidea"): 
+    elif (metodo == "coseno"): 
         for i in range(len(matriz)):
             for j in range(len(matriz)):
                 matriz_similitudes[i][j] = dist_cos(i, j)
-        print "Usando Euclidea"
+        print "Usando Coseno"
     else:
-        print "Usando coseno"
+        for i in range(len(matriz)):
+            for j in range(len(matriz)):
+                matriz_similitudes[i][j] = dist_euclidea(i, j)
+        print "Usando euclidea"
  
 
 #x = coef_corr_pearson(1,0)
@@ -163,9 +169,9 @@ def show_matriz(matrix):
 def print_matriz():
   print "---------------------"
   print "MATRIZ DE SIMILITUDES"
-  for i in range(len(matriz)):
+  for i in range(len(matriz_similitudes)):
         aux_fila = "[" + str(i) + "] ->  "
-        for j in range(len(matriz)):
+        for j in range(len(matriz_similitudes[i])):
            aux_fila += "{:.4f}".format(matriz_similitudes[i][j])
            aux_fila += "\t\t"
         print aux_fila
@@ -173,11 +179,14 @@ def print_matriz():
 #neighbors = cantidad de vecinos a calcular
 #usuario_x = usuario del que vamos a ver las similitudes
 #pos_calcular = item a calcular valor
-def calcular_vecinos(neighbors, usuario_x, pos_calcular):
+def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
     
     k_vecinos = []
     fila_usuario_ordenar = deepcopy(matriz_similitudes[usuario_x])
-    fila_usuario_ordenar.sort(reverse=True) #Ya esta modificado
+    if ((metrica == 'pearson') or (metrica == 'coseno')):
+        fila_usuario_ordenar.sort(reverse=True) #Ya esta modificado
+    else:
+        fila_usuario_ordenar.sort(reverse=False)
     fila_usuario_limpia = deepcopy(matriz_similitudes[usuario_x])
     
     vecinos_coincidentes = []
@@ -256,7 +265,7 @@ def main(metrica, prediccion, vecinos):
         for j in range(len(matriz[i])):  #Recorremos buscando posiciones a predecir
             if (matriz_final[i][j] == '-'): #Encontrada posicion a predecir
                 print "----------------------------------"
-                k = calcular_vecinos(vecinos, i, j)
+                k = calcular_vecinos(metrica, vecinos, i, j)
                 if(prediccion == "simple"):
                     pred  = prediccion_simple(j, k)
                     
