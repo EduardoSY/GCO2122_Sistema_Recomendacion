@@ -14,8 +14,33 @@ El objetivo de esta práctica es implementar un sistema de recomendación siguie
 
 El código implementado para la realización de esta práctica ha sido escrito en Python. Al tratarse de mi primer acercamiento al lenguaje es muy probable que hayan formas mucho más rápida y optimas de realizar las funciones.
 
+
+
 **IMPLEMENTACIÓN**
 
+1. Lectura e inicialización de las matrices.
+
+Lo primero que debemos hacer es leer la matriz y estructurarla de la manera correcta para ser leida y manipulada. Para realizar esto leemos línea a línea en el documento, la procesamos y la guardamos en un vector. Este vector lo insertamos a su vez en otro vector, formando así una matriz.
+
+Una vez hecho esto creamos la matriz de similitud. Esta será cuadrada y cuyas dimensiones coinciden, como es lógico, con el número de usuarios. Puesto que aún podemos calcular los valores lo que haremos será rellenarla de valores vacios.
+
+2. Implementación de métricas
+
+Con las siguientes funciones podremos calcular la similitud entre un usuario a y un usuario b. En nuestro caso tenemos 3 alternativas.
+
+  1. Correlación de Pearson
+
+  ![Cap_Pearson](./img/pearson_cv.png)
+
+  2. Distancia coseno
+
+  ![Cap_Coseno](./img/pearson_cv.png)
+
+  3. Distancia euclídea
+
+  ![Cap_euclidea](./img/pearson_cv.png)
+
+La implementación consiste simplemente en aplicar la fórmula matemática mostrada en las diapositivas del campus virtual. Es por ello que no considero necesario entrar en mucho detalle. 
 ### Ejemplo de uso
 
 Para usar el programa debemos ejecutar algo similar a lo siguiente: ```python GCO.py "fichero.txt" pearson 5 simple```
@@ -56,4 +81,4 @@ Resultado prediccion: 2.2542
 
 ``` python GCO.py "fichero.txt" pearson 5 simple > fichero_salida.txt```
 
-En [este enlace]() tenemos diversos ficheros de salida de pruebas ejecutadas con el codigo implementado.
+En [este enlace](https://github.com/EduardoSY/GCO2122_Sistema_Recomendacion/tree/main/resultados_matrices) tenemos diversos ficheros de salida de pruebas ejecutadas con el codigo implementado.
