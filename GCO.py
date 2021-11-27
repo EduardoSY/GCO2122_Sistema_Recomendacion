@@ -1,83 +1,15 @@
 # Autor: Eduardo Da Silva Yanes
-# TO DO
-# --- Metricas:
-# --- Num vecinos - Done
-# --- Tipo Prediccion:
-
 
 #MickeyHerramientas:
 #Con type(variable) puedo ver el tipo de la variable.
-#reduce hace magia
-
 
 import argparse
 import math
 from copy import deepcopy
 
-parser = argparse.ArgumentParser(description='Analisis de un sistema recomendador')
-parser.add_argument('file', type=argparse.FileType('r'))
-parser.add_argument('metrica',
-                    choices=['pearson', 'euclidea', 'coseno']) #Luego analizo si tiene sentido o no
+# ----- CALCULO DE METRICAS -----
 
-parser.add_argument('neighbors', type=int,
-                    help="Indica el numero de vecinos a considerar en el analisis")
-
-parser.add_argument('prediccion', 
-                    choices=['simple', 'media'])
-
-args = parser.parse_args()
-
-#Lectura del fichero
-matriz_fichero = args.file.readlines() # Devuelve un vector de strings
-matriz = []
-usuarios_predecir = []
-for i in matriz_fichero:
-    linea = i.split()
-    lineaux = []
-    necesita_predecir = False
-    for j in linea:
-        if j != '-':
-            aux = int(j)
-        else:
-            aux = j
-            necesita_predecir = True
-        lineaux.append(aux)
-    if(necesita_predecir == True):
-        usuarios_predecir.append(len(matriz))    
-    matriz.append(lineaux)
-
-""" # Imprimo la matriz
-for line in matriz:
-    print ('  '.join(map(str, line)))
-
-
-#print(matriz)
-print "---"
-print usuarios_predecir
-print "_-_-_" """
-
-matriz_similitudes = [ [ None for y in range(len(matriz)) ] for x in range( len(matriz)) ] #Matriz de similitud rellena de ceros
-
-
-def valores_comunes(usuario_u, usuario_v):
-    vector_usuario_u = []
-    vector_usuario_v = []
-    for i in range(len(matriz[usuario_u])):
-      if(matriz[usuario_u][i] != '-' and matriz[usuario_v][i] != '-'):
-          vector_usuario_u.append(matriz[usuario_u][i])
-          vector_usuario_v.append(matriz[usuario_v][i])
-    return vector_usuario_u, vector_usuario_v
-
-def media(dataset):
-    datos = []
-
-    for i in dataset:
-        if i != '-':
-            datos.append(i)
-    
-    return sum(datos) / float(len(datos))
-
-# Correcto
+# -> Pearson
 def coef_corr_pearson(usuario_u, usuario_v):
     vector_usuario_u, vector_usuario_v = valores_comunes(usuario_u, usuario_v)
     media_user_u = media(vector_usuario_u)
@@ -98,7 +30,19 @@ def coef_corr_pearson(usuario_u, usuario_v):
     resultado = (numerador / (math.sqrt(sum_raiz_izq) * math.sqrt(sum_raiz_der)))
     return resultado
 
+# -> Distancia euclidea
+def dist_euclidea(usuario_u, usuario_v):
+    resultado = 0
+    #contador = 0
+    for i in range(len(matriz[usuario_u])):
+        if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')):  
+            resultado += ((matriz[usuario_u][i] - matriz[usuario_v][i])**2)
+            #contador += 1
+    resultado = math.sqrt(resultado)
+    #resultado = resultado / float(contador)
+    return resultado
 
+# -> Distancia coseno
 def dist_cos(usuario_u, usuario_v):
     numerador = 0
     sum_raiz_izq = 0
@@ -116,21 +60,11 @@ def dist_cos(usuario_u, usuario_v):
     resultado = (numerador / (math.sqrt(sum_raiz_izq) * math.sqrt(sum_raiz_der)))
     return resultado
 
+# -----------------------------------
 
-def dist_euclidea(usuario_u, usuario_v):
-    resultado = 0
-    #contador = 0
-    for i in range(len(matriz[usuario_u])):
-        if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')):  
-            resultado += ((matriz[usuario_u][i] - matriz[usuario_v][i])**2)
-            #contador += 1
-    resultado = math.sqrt(resultado)
-    #resultado = resultado / float(contador)
-    return resultado
-#Esto hay que normalizarlo porque da mas de 1
-#Los usuarios distantes se parece poco. Los
+# ----- CALCULO DE PREDICCIONES -----
 
-
+# -> Calcular las similitudes
 def calculo_sim(metodo):
     if (metodo == "pearson"):
         for i in range(len(matriz)):
@@ -146,37 +80,68 @@ def calculo_sim(metodo):
             for j in range(len(matriz)):
                 matriz_similitudes[i][j] = dist_euclidea(i, j)
         print "Usando euclidea"
- 
 
-#x = coef_corr_pearson(1,0)
-#print x
+# -> Prediccion simple
+def prediccion_simple(pos_predecir, k_vecinos):
+    numerador = 0
+    denominador = 0
+    for i in k_vecinos:
+        #print (pos_predecir)
+        numerador += (i[1] * matriz[i[0]][pos_predecir])
 
+        
+        denominador += abs(i[1])
+    resultado = numerador / float(denominador)
+    resultado_formato = "{:.4f}".format(resultado)
+    resultado = float(resultado_formato)
+    return resultado
 
-def show_matriz(matrix):
-    for i in range(len(matrix)):
-        aux_fila = "[" + str(i) + "] ->  "
-        for j in range(len(matrix[i])):
-            aux_fila += "{:.2f}".format(matrix[i][j])
-            aux_fila += "\t\t"
-        print aux_fila
+# -> Prediccion usando diferencia con la media
+def prediccion_dif_media(usuario, pos_predecir, k_vecinos):
+    media_usuario = media(matriz[usuario])
+    #print "Media usuario: " + str(media_usuario)
+    medias = []
+    for i in k_vecinos:
+        medias.append(media(matriz[i[0]]))
+    #print medias
 
+    numerador = 0
+    denominador = 0
+    for i in k_vecinos:
+        #print (pos_predecir)
+        numerador += (i[1] * (matriz[i[0]][pos_predecir] - media(matriz[i[0]])))
+        denominador += abs(i[1])
 
+    resultado = media_usuario + (numerador / float(denominador))
+    return resultado
 
-def print_matriz():
-  print "---------------------"
-  print "MATRIZ DE SIMILITUDES"
-  for i in range(len(matriz_similitudes)):
-        aux_fila = "[" + str(i) + "] ->  "
-        for j in range(len(matriz_similitudes[i])):
-           aux_fila += "{:.4f}".format(matriz_similitudes[i][j])
-           aux_fila += "\t\t"
-        print aux_fila
+#------------------------------------
 
-#neighbors = cantidad de vecinos a calcular
-#usuario_x = usuario del que vamos a ver las similitudes
-#pos_calcular = item a calcular valor
-def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
+#------- FUNCIONES AUXILIARES -------
+
+# -> Calcular la media
+def media(dataset):
+    datos = []
+
+    for i in dataset:
+        if i != '-':
+            datos.append(i)
     
+    return sum(datos) / float(len(datos))
+
+# -> Calcular item comunes que los usuarios u y v han votado
+def valores_comunes(usuario_u, usuario_v):
+    vector_usuario_u = []
+    vector_usuario_v = []
+    for i in range(len(matriz[usuario_u])):
+      if(matriz[usuario_u][i] != '-' and matriz[usuario_v][i] != '-'):
+          vector_usuario_u.append(matriz[usuario_u][i])
+          vector_usuario_v.append(matriz[usuario_v][i])
+    return vector_usuario_u, vector_usuario_v
+
+
+# -> Calcular los vecinos para hacer las predicciones
+def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
     k_vecinos = []
     fila_usuario_ordenar = deepcopy(matriz_similitudes[usuario_x])
     if ((metrica == 'pearson') or (metrica == 'coseno')):
@@ -201,59 +166,33 @@ def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
     print k_vecinos 
     return k_vecinos #Devuelve un par (usuario, similitud)
 
+# -> --- MOSTRAR MATRICES ---
+def show_matriz(matrix):
+    for i in range(len(matrix)):
+        aux_fila = "[" + str(i) + "] ->  "
+        for j in range(len(matrix[i])):
+            aux_fila += "{:.2f}".format(matrix[i][j])
+            aux_fila += "\t\t"
+        print aux_fila
 
-def prediccion_simple(pos_predecir, k_vecinos):
-    numerador = 0
-    denominador = 0
-    for i in k_vecinos:
-        #print (pos_predecir)
-        numerador += (i[1] * matriz[i[0]][pos_predecir])
-
-        
-        denominador += abs(i[1])
-    resultado = numerador / float(denominador)
-    resultado_formato = "{:.4f}".format(resultado)
-    resultado = float(resultado_formato)
-    return resultado
-
-def prediccion_dif_media(usuario, pos_predecir, k_vecinos):
-    media_usuario = media(matriz[usuario])
-    #print "Media usuario: " + str(media_usuario)
-    medias = []
-    for i in k_vecinos:
-        medias.append(media(matriz[i[0]]))
-    #print medias
-
-    numerador = 0
-    denominador = 0
-    for i in k_vecinos:
-        #print (pos_predecir)
-        numerador += (i[1] * (matriz[i[0]][pos_predecir] - media(matriz[i[0]])))
-        denominador += abs(i[1])
-
-    resultado = media_usuario + (numerador / float(denominador))
-    return resultado
+def show_matriz_similitud():
+  print "---------------------"
+  print "MATRIZ DE SIMILITUDES"
+  for i in range(len(matriz_similitudes)):
+        aux_fila = "[" + str(i) + "] ->  "
+        for j in range(len(matriz_similitudes[i])):
+           aux_fila += "{:.4f}".format(matriz_similitudes[i][j])
+           aux_fila += "\t\t"
+        print aux_fila
 
 
-
-
-
-# calculo_sim("pearson")
-# print_matriz()
-# a = calcular_vecinos(args.neighbors, 0)
-# print a
-
-# Para los vecinos
-# Selecciono la fila y hago un sort
-# Luego escojo los k mejores y los paso a un vector
-# Luego, para saber que vecino ha sido uso index
-
+# [---][---] FUNCION PRINCIPAL DE GESTION [---][---]
 def main(metrica, prediccion, vecinos):
     print ("1. Metrica empleada: " + metrica)
     print ("2. Metodo de prediccion: " + prediccion)
     print ("3. Numero de vecinos: " + str(vecinos))
     calculo_sim(metrica)
-    print_matriz()
+    show_matriz_similitud()
 
     matriz_final = deepcopy(matriz)
 
@@ -275,6 +214,48 @@ def main(metrica, prediccion, vecinos):
                     print "\nResultado prediccion - Usuario " + str(i) + " -> Item " + str(j) + " = " + str(pred) + "\n"
 
     return matriz_final
+
+
+# -----------------------------------------------------------------------------
+# EJECICION GENERAL DE PROGRAMA
+# -----------------------------------------------------------------------------
+
+
+# Gestión de los parámetros de entrada
+parser = argparse.ArgumentParser(description='Analisis de un sistema recomendador')
+parser.add_argument('file', type=argparse.FileType('r'))
+parser.add_argument('metrica',
+                    choices=['pearson', 'euclidea', 'coseno']) #Luego analizo si tiene sentido o no
+
+parser.add_argument('neighbors', type=int,
+                    help="Indica el numero de vecinos a considerar en el analisis")
+
+parser.add_argument('prediccion', 
+                    choices=['simple', 'media'])
+
+args = parser.parse_args()
+
+#Lectura del fichero
+matriz_fichero = args.file.readlines() # Devuelve un vector de strings
+matriz = [] # Matriz leida del fichero
+usuarios_predecir = [] #Array con los usuarios de los que debemos predecir valores
+for i in matriz_fichero:
+    linea = i.split()
+    lineaux = []
+    necesita_predecir = False
+    for j in linea:
+        if j != '-':
+            aux = int(j)
+        else:
+            aux = j
+            necesita_predecir = True
+        lineaux.append(aux)
+    if(necesita_predecir == True):
+        usuarios_predecir.append(len(matriz))    
+    matriz.append(lineaux)
+
+#Creamos la matriz de similitudes vacia
+matriz_similitudes = [ [ None for y in range(len(matriz)) ] for x in range( len(matriz)) ] #Matriz de similitud rellena de ceros
 
 x = main(args.metrica , args.prediccion, args.neighbors)
 print "--- MATRIZ CON LAS PREDICCIONES ---"
