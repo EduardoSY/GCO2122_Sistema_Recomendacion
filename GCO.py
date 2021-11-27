@@ -1,16 +1,9 @@
 # Autor: Eduardo Da Silva Yanes
 # TO DO
 # --- Metricas:
-# 1 Correlacion Pearson - DONE
-# 2 Distancia coseno - Proceso
-#     Falta estandarizar las distancias
-# 3 Distancia euclidea - Proceso
-#     Falta estandarizar las distancias
-
 # --- Num vecinos - Done
 # --- Tipo Prediccion:
-# 1 Prediccion simple
-# 2 Diferencia con la media
+
 
 #MickeyHerramientas:
 #Con type(variable) puedo ver el tipo de la variable.
