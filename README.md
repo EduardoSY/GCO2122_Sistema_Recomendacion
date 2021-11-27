@@ -27,3 +27,10 @@ Para usar el programa debemos ejecutar algo similar a lo siguiente: ```python GC
 - simple es el método de prediccion. Las opciones son: simple y media.
 
 A continuación se muestra un ejemplo de uso respecto al software desarrollado.
+
+
+
+
+**ATENCIÓN**: Al utilizar matrices de mayor tamaño es posible que la visualización en la terminal no se la correcta. En esos casos recomiendo redirigir la salida a un fichero de texto y visualizar desde ahí los resultados.
+
+``` python GCO.py "fichero.txt" pearson 5 simple > fichero_salida.txt```
