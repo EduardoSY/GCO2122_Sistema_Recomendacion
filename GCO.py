@@ -221,7 +221,7 @@ def main(metrica, prediccion, vecinos):
 # -----------------------------------------------------------------------------
 
 
-# Gestión de los parámetros de entrada
+# Gestion de los parametros de entrada
 parser = argparse.ArgumentParser(description='Analisis de un sistema recomendador')
 parser.add_argument('file', type=argparse.FileType('r'))
 parser.add_argument('metrica',
