@@ -94,6 +94,12 @@ def prediccion_simple(pos_predecir, k_vecinos):
     resultado = numerador / float(denominador)
     resultado_formato = "{:.4f}".format(resultado)
     resultado = float(resultado_formato)
+    
+    if resultado < 0:
+        resultado = 0
+    elif resultado > 5:
+        resultado = 5
+
     return resultado
 
 # -> Prediccion usando diferencia con la media
@@ -113,6 +119,14 @@ def prediccion_dif_media(usuario, pos_predecir, k_vecinos):
         denominador += abs(i[1])
 
     resultado = media_usuario + (numerador / float(denominador))
+    
+    if resultado < 0:
+        resultado = 0
+    elif resultado > 5:
+        resultado = 5
+
+    return resultado
+
     return resultado
 
 #------------------------------------
@@ -148,17 +162,24 @@ def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
         fila_usuario_ordenar.sort(reverse=True) #Ya esta modificado
     else:
         fila_usuario_ordenar.sort(reverse=False)
-    fila_usuario_limpia = deepcopy(matriz_similitudes[usuario_x])
+    #print "Fila Usuario limpia"
     
+    fila_usuario_limpia = deepcopy(matriz_similitudes[usuario_x])
+    #print fila_usuario_limpia
+    fila_usuario_limpia2 = deepcopy(fila_usuario_limpia)
     vecinos_coincidentes = []
+    
+    
     for elemento in fila_usuario_ordenar:
-        usuario = fila_usuario_limpia.index(elemento) #Obtengo el usuario
+        
+        usuario = fila_usuario_limpia2.index(elemento)
+        fila_usuario_limpia2[usuario] = 0
+        #print usuario #Obtengo el usuario
         if(matriz[usuario][pos_calcular] != '-'): #Analiza si ha votado el item
             vecinos_coincidentes.append(usuario)
 
     cantidad_vecinos = vecinos_coincidentes[0:neighbors] #Vecinos que se van a usar
 
-    #fila_truncada = fila_usuario_ordenar[0:neighbors+1]
     for i in cantidad_vecinos:
         valor_similitud = fila_usuario_limpia[i]
         k_vecinos.append((i, valor_similitud))
