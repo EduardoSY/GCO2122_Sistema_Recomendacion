@@ -200,10 +200,14 @@ def show_matriz_similitud():
   print "---------------------"
   print "MATRIZ DE SIMILITUDES"
   for i in range(len(matriz_similitudes)):
-        aux_fila = "[" + str(i) + "] -> \t"
+        aux_fila = "[" + str(i) + "] ->  "
         for j in range(len(matriz_similitudes[i])):
-           aux_fila += "{:.4f}".format(matriz_similitudes[i][j])
-           aux_fila += "\t"
+           if (matriz_similitudes[i][j] < 0):
+               aux_fila += "{:.3f}".format(matriz_similitudes[i][j])
+           else:
+               aux_fila += "{:.4f}".format(matriz_similitudes[i][j])
+
+           aux_fila += "\t\t"
         print aux_fila
 
 
@@ -212,6 +216,8 @@ def main(metrica, prediccion, vecinos):
     print ("1. Metrica empleada: " + metrica)
     print ("2. Metodo de prediccion: " + prediccion)
     print ("3. Numero de vecinos: " + str(vecinos))
+    if vecinos < 3 :
+        print("ATENCION: La cantidad de vecinos es baja y los resultados pueden no ser fiable. Recomendamos minimo 3 vecinos")
     calculo_sim(metrica)
     show_matriz_similitud()
 
@@ -242,13 +248,20 @@ def main(metrica, prediccion, vecinos):
 # -----------------------------------------------------------------------------
 
 
+def neighbors_type(x):
+    x = int(x)
+
+    if (x < 1):
+        raise argparse.ArgumentTypeError("Selecciona al menos un vecino. RECOMENDABLE +3")
+    else:
+        return x
 # Gestion de los parametros de entrada
 parser = argparse.ArgumentParser(description='Analisis de un sistema recomendador')
 parser.add_argument('file', type=argparse.FileType('r'))
 parser.add_argument('metrica',
                     choices=['pearson', 'euclidea', 'coseno']) #Luego analizo si tiene sentido o no
 
-parser.add_argument('neighbors', type=int,
+parser.add_argument('neighbors', type=neighbors_type,
                     help="Indica el numero de vecinos a considerar en el analisis")
 
 parser.add_argument('prediccion', 
