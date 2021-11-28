@@ -18,29 +18,43 @@ El código implementado para la realización de esta práctica ha sido escrito e
 
 **IMPLEMENTACIÓN**
 
-1. Lectura e inicialización de las matrices.
+1. **Lectura e inicialización de las matrices.**
 
 Lo primero que debemos hacer es leer la matriz y estructurarla de la manera correcta para ser leida y manipulada. Para realizar esto leemos línea a línea en el documento, la procesamos y la guardamos en un vector. Este vector lo insertamos a su vez en otro vector, formando así una matriz.
 
 Una vez hecho esto creamos la matriz de similitud. Esta será cuadrada y cuyas dimensiones coinciden, como es lógico, con el número de usuarios. Puesto que aún podemos calcular los valores lo que haremos será rellenarla de valores vacios.
 
-2. Implementación de métricas
+2. **Implementación de métricas**
 
 Con las siguientes funciones podremos calcular la similitud entre un usuario a y un usuario b. En nuestro caso tenemos 3 alternativas.
 
-  1. Correlación de Pearson
+  1. **Correlación de Pearson**
 
   ![Cap_Pearson](./img/pearson_cv.png)
 
-  2. Distancia coseno
+  2. **Distancia coseno**
 
   ![Cap_Coseno](./img/pearson_cv.png)
 
-  3. Distancia euclídea
+  3. **Distancia euclídea**
 
   ![Cap_euclidea](./img/pearson_cv.png)
 
 La implementación consiste simplemente en aplicar la fórmula matemática mostrada en las diapositivas del campus virtual. Es por ello que no considero necesario entrar en mucho detalle. 
+
+Una vez tenemos estas métricas recorremos cada posición de la matriz de similitudes rellenando con los valores correspondientes según la métrica elegida
+
+3. **Calculo de los k-vecinos**
+
+A esta funcion se le pasa como parámetros la métrica empleada, el número de vecinos, el usuario del que vamos a calcular sus vecinos y la posicion (item) que se quiere predecir.
+
+Lo primero es seleccionar la fila de la matriz de similitudes del usuario y ordenarla. Si estamos usando **pearson** o **distancia conseno** nos interesan los valores más altos puesto que estos significan mayor similitud. En el caso de la **distancia euclídea** es lo contrario. 
+
+Una vez hecho esto se valoran los vecinos que **hayan votado** el item que queremos. Si no lo han valorado no lo tenemos en cuenta.
+
+Llegados a este punto se tienen los usuarios que han valorado el item i ordenamos en base a la similitud. Ahora solo se seleccional los necesarios en base al número de vecinos seleccionado.
+
+Con estas operaciones hechas se devuelve un vector que cada elemento es una tupla vecino, similitud.
 ### Ejemplo de uso
 
 Para usar el programa debemos ejecutar algo similar a lo siguiente: ```python GCO.py "fichero.txt" pearson 5 simple```
