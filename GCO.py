@@ -15,9 +15,7 @@ def coef_corr_pearson(usuario_u, usuario_v):
     media_user_u = media(vector_usuario_u)
     media_user_v = media(vector_usuario_v)
     
-    #print "Usuario u media " + str(media_user_u)
-    #print "Usuario v media " + str(media_user_v)
-    
+    #Valores a calcular por separado
     numerador = 0
     sum_raiz_izq = 0
     sum_raiz_der = 0
@@ -27,36 +25,34 @@ def coef_corr_pearson(usuario_u, usuario_v):
             sum_raiz_izq += (matriz[usuario_u][i] - media_user_u) ** 2
             sum_raiz_der += (matriz[usuario_v][i] - media_user_v) ** 2
     
+    #Operación matemática tal cual la formula del PDF
     resultado = (numerador / (math.sqrt(sum_raiz_izq) * math.sqrt(sum_raiz_der)))
     return resultado
 
 # -> Distancia euclidea
 def dist_euclidea(usuario_u, usuario_v):
     resultado = 0
-    #contador = 0
     for i in range(len(matriz[usuario_u])):
         if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')):  
             resultado += ((matriz[usuario_u][i] - matriz[usuario_v][i])**2)
             #contador += 1
     resultado = math.sqrt(resultado)
-    #resultado = resultado / float(contador)
     return resultado
 
 # -> Distancia coseno
 def dist_cos(usuario_u, usuario_v):
+    #Valores a calcular por separado
     numerador = 0
     sum_raiz_izq = 0
     sum_raiz_der = 0
     
     for i in range(len(matriz[usuario_u])):
         if ((matriz[usuario_u][i] != '-') and (matriz[usuario_v][i] != '-')): 
-            # print "---------------------"
-            # print matriz[usuario_u][i]
-            # print matriz[usuario_v][i]
             numerador += matriz[usuario_u][i] * matriz[usuario_v][i]
             sum_raiz_izq += (matriz[usuario_u][i]) ** 2
             sum_raiz_der += (matriz[usuario_v][i]) ** 2
 
+    #Formula matemática tal cual está en el PDF
     resultado = (numerador / (math.sqrt(sum_raiz_izq) * math.sqrt(sum_raiz_der)))
     return resultado
 
@@ -83,18 +79,19 @@ def calculo_sim(metodo):
 
 # -> Prediccion simple
 def prediccion_simple(pos_predecir, k_vecinos):
+    #Valores a calcular por separado
     numerador = 0
     denominador = 0
+    
     for i in k_vecinos:
-        #print (pos_predecir)
         numerador += (i[1] * matriz[i[0]][pos_predecir])
-
-        
         denominador += abs(i[1])
+    
     resultado = numerador / float(denominador)
-    resultado_formato = "{:.4f}".format(resultado)
+    resultado_formato = "{:.4f}".format(resultado) #Acotamos el resultado de la prediccion a 4 decimales.
     resultado = float(resultado_formato)
     
+    #En caso de que pase algún valor extremo fuera de los limites.
     if resultado < 0:
         resultado = 0
     elif resultado > 5:
@@ -105,21 +102,20 @@ def prediccion_simple(pos_predecir, k_vecinos):
 # -> Prediccion usando diferencia con la media
 def prediccion_dif_media(usuario, pos_predecir, k_vecinos):
     media_usuario = media(matriz[usuario])
-    #print "Media usuario: " + str(media_usuario)
     medias = []
+    #Almacenamos todas las medias 
     for i in k_vecinos:
         medias.append(media(matriz[i[0]]))
-    #print medias
-
     numerador = 0
     denominador = 0
+    
+    #Realizacion de los calculos
     for i in k_vecinos:
-        #print (pos_predecir)
         numerador += (i[1] * (matriz[i[0]][pos_predecir] - media(matriz[i[0]])))
         denominador += abs(i[1])
-
     resultado = media_usuario + (numerador / float(denominador))
     
+    #En caso de que pase algún valor extremo fuera de los limites
     if resultado < 0:
         resultado = 0
     elif resultado > 5:
@@ -127,7 +123,6 @@ def prediccion_dif_media(usuario, pos_predecir, k_vecinos):
 
     return resultado
 
-    return resultado
 
 #------------------------------------
 
@@ -136,7 +131,6 @@ def prediccion_dif_media(usuario, pos_predecir, k_vecinos):
 # -> Calcular la media
 def media(dataset):
     datos = []
-
     for i in dataset:
         if i != '-':
             datos.append(i)
@@ -148,6 +142,7 @@ def valores_comunes(usuario_u, usuario_v):
     vector_usuario_u = []
     vector_usuario_v = []
     for i in range(len(matriz[usuario_u])):
+      #Verifica que ambos usuarios hayan votado al item para poder comparar
       if(matriz[usuario_u][i] != '-' and matriz[usuario_v][i] != '-'):
           vector_usuario_u.append(matriz[usuario_u][i])
           vector_usuario_v.append(matriz[usuario_v][i])
@@ -158,23 +153,20 @@ def valores_comunes(usuario_u, usuario_v):
 def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
     k_vecinos = []
     fila_usuario_ordenar = deepcopy(matriz_similitudes[usuario_x])
+    
+    #Dependiendo de la metrica nos interesan los matyores valores o los menores
     if ((metrica == 'pearson') or (metrica == 'coseno')):
         fila_usuario_ordenar.sort(reverse=True) #Ya esta modificado
     else:
         fila_usuario_ordenar.sort(reverse=False)
-    #print "Fila Usuario limpia"
     
     fila_usuario_limpia = deepcopy(matriz_similitudes[usuario_x])
-    #print fila_usuario_limpia
     fila_usuario_limpia2 = deepcopy(fila_usuario_limpia)
     vecinos_coincidentes = []
     
-    
-    for elemento in fila_usuario_ordenar:
-        
+    for elemento in fila_usuario_ordenar: 
         usuario = fila_usuario_limpia2.index(elemento)
-        fila_usuario_limpia2[usuario] = 0
-        #print usuario #Obtengo el usuario
+        fila_usuario_limpia2[usuario] = 0 #Descartamos el usuario ya escogido
         if(matriz[usuario][pos_calcular] != '-'): #Analiza si ha votado el item
             vecinos_coincidentes.append(usuario)
 
@@ -242,12 +234,6 @@ def main(metrica, prediccion, vecinos):
 
     return matriz_final
 
-
-# -----------------------------------------------------------------------------
-# EJECICION GENERAL DE PROGRAMA
-# -----------------------------------------------------------------------------
-
-
 def neighbors_type(x):
     x = int(x)
 
@@ -255,6 +241,11 @@ def neighbors_type(x):
         raise argparse.ArgumentTypeError("Selecciona al menos un vecino. RECOMENDABLE +3")
     else:
         return x
+
+# -----------------------------------------------------------------------------
+# EJECICION GENERAL DE PROGRAMA
+# -----------------------------------------------------------------------------
+
 # Gestion de los parametros de entrada
 parser = argparse.ArgumentParser(description='Analisis de un sistema recomendador')
 parser.add_argument('file', type=argparse.FileType('r'))
