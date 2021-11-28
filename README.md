@@ -10,51 +10,6 @@
 
 El objetivo de esta práctica es implementar un sistema de recomendación siguiendo el método de filtrado colaborativo.
 
-### Descripción de la implementación:
-
-El código implementado para la realización de esta práctica ha sido escrito en Python. Al tratarse de mi primer acercamiento al lenguaje es muy probable que hayan formas mucho más rápida y optimas de realizar las funciones.
-
-
-
-**IMPLEMENTACIÓN**
-
-1. **Lectura e inicialización de las matrices.**
-
-Lo primero que debemos hacer es leer la matriz y estructurarla de la manera correcta para ser leida y manipulada. Para realizar esto leemos línea a línea en el documento, la procesamos y la guardamos en un vector. Este vector lo insertamos a su vez en otro vector, formando así una matriz.
-
-Una vez hecho esto creamos la matriz de similitud. Esta será cuadrada y cuyas dimensiones coinciden, como es lógico, con el número de usuarios. Puesto que aún podemos calcular los valores lo que haremos será rellenarla de valores vacios.
-
-2. **Implementación de métricas**
-
-Con las siguientes funciones podremos calcular la similitud entre un usuario a y un usuario b. En nuestro caso tenemos 3 alternativas.
-
-  1. **Correlación de Pearson**
-
-  ![Cap_Pearson](./img/pearson_cv.png)
-
-  2. **Distancia coseno**
-
-  ![Cap_Coseno](./img/pearson_cv.png)
-
-  3. **Distancia euclídea**
-
-  ![Cap_euclidea](./img/pearson_cv.png)
-
-La implementación consiste simplemente en aplicar la fórmula matemática mostrada en las diapositivas del campus virtual. Es por ello que no considero necesario entrar en mucho detalle. 
-
-Una vez tenemos estas métricas recorremos cada posición de la matriz de similitudes rellenando con los valores correspondientes según la métrica elegida
-
-3. **Calculo de los k-vecinos**
-
-A esta funcion se le pasa como parámetros la métrica empleada, el número de vecinos, el usuario del que vamos a calcular sus vecinos y la posicion (item) que se quiere predecir.
-
-Lo primero es seleccionar la fila de la matriz de similitudes del usuario y ordenarla. Si estamos usando **pearson** o **distancia conseno** nos interesan los valores más altos puesto que estos significan mayor similitud. En el caso de la **distancia euclídea** es lo contrario. 
-
-Una vez hecho esto se valoran los vecinos que **hayan votado** el item que queremos. Si no lo han valorado no lo tenemos en cuenta.
-
-Llegados a este punto se tienen los usuarios que han valorado el item i ordenamos en base a la similitud. Ahora solo se seleccional los necesarios en base al número de vecinos seleccionado.
-
-Con estas operaciones hechas se devuelve un vector que cada elemento es una tupla vecino, similitud.
 ### Ejemplo de uso
 
 Para usar el programa debemos ejecutar algo similar a lo siguiente: ```python GCO.py "fichero.txt" pearson 5 simple```
@@ -96,3 +51,96 @@ Resultado prediccion: 2.2542
 ``` python GCO.py "fichero.txt" pearson 5 simple > fichero_salida.txt```
 
 En [este enlace](https://github.com/EduardoSY/GCO2122_Sistema_Recomendacion/tree/main/resultados_matrices) tenemos diversos ficheros de salida de pruebas ejecutadas con el codigo implementado.
+
+### Descripción de la implementación:
+
+
+1. **Lectura e inicialización de las matrices.**
+
+Lo primero que se hace es leer la matriz y estructurarla de la manera correcta para ser leida y manipulada. Para realizar esto se lee línea a línea en el documento, se procesa y se guarda en un vector. Este vector se inserta a su vez en otro vector, formando así una matriz.
+
+Una vez hecho esto se crea la matriz de similitud. Esta será cuadrada y cuyas dimensiones coinciden, como es lógico, con el número de usuarios. Puesto que aún no se puede calcular los valores lo que se hará será rellenarla de valores vacios.
+
+También se crea un vector donde se almacena qué usuarios tienen algún valor para predecir, es decir, qué usuarios tienen entre sus items un simbolo **-**.
+
+2. **Implementación de métricas**
+
+Con las siguientes funciones podremos calcular la similitud entre un usuario a y un usuario b. En nuestro caso tenemos 3 alternativas.
+
+  1. **Correlación de Pearson**
+
+  ![Cap_Pearson](./img/pearson_cv.png)
+
+  2. **Distancia coseno**
+
+  ![Cap_Coseno](./img/pearson_cv.png)
+
+  3. **Distancia euclídea**
+
+  ![Cap_euclidea](./img/pearson_cv.png)
+
+La implementación consiste simplemente en aplicar la fórmula matemática mostrada en las diapositivas del campus virtual. Es por ello que no considero necesario entrar en mucho detalle. 
+
+Una vez tenemos estas métricas recorremos cada posición de la matriz de similitudes rellenando con los valores correspondientes según la métrica elegida
+
+3. **Calculo de los k-vecinos**
+
+A esta funcion se le pasa como parámetros la métrica empleada, el número de vecinos, el usuario del que vamos a calcular sus vecinos y la posicion (item) que se quiere predecir.
+
+Lo primero es seleccionar la fila de la matriz de similitudes del usuario y ordenarla. Si estamos usando **pearson** o **distancia conseno** nos interesan los valores más altos puesto que estos significan mayor similitud. En el caso de la **distancia euclídea** es lo contrario. 
+
+Una vez hecho esto se valoran los vecinos que **hayan votado** el item que queremos. Si no lo han valorado no lo tenemos en cuenta.
+
+Llegados a este punto se tienen los usuarios que han valorado el item i ordenamos en base a la similitud. Ahora solo se seleccional los necesarios en base al número de vecinos seleccionado.
+
+Con estas operaciones hechas se devuelve un vector que cada elemento es una tupla vecino, similitud.
+
+``` python
+def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
+    k_vecinos = []
+    fila_usuario_ordenar = deepcopy(matriz_similitudes[usuario_x])
+    if ((metrica == 'pearson') or (metrica == 'coseno')):
+        fila_usuario_ordenar.sort(reverse=True) 
+    else:
+        fila_usuario_ordenar.sort(reverse=False)
+
+    fila_usuario_limpia = deepcopy(matriz_similitudes[usuario_x])
+    
+    fila_usuario_limpia2 = deepcopy(fila_usuario_limpia)
+    vecinos_coincidentes = []
+    
+    for elemento in fila_usuario_ordenar:
+        usuario = fila_usuario_limpia2.index(elemento)
+        fila_usuario_limpia2[usuario] = 0
+        if(matriz[usuario][pos_calcular] != '-'): 
+            vecinos_coincidentes.append(usuario)
+
+    cantidad_vecinos = vecinos_coincidentes[0:neighbors] 
+
+    for i in cantidad_vecinos:
+        valor_similitud = fila_usuario_limpia[i]
+        k_vecinos.append((i, valor_similitud))
+    print "Vecinos utilizados para calcular Usuario " + str(usuario_x) + " -> Item " + str(pos_calcular)
+    print k_vecinos 
+    return k_vecinos
+```
+
+4. **Realizar la predicción**
+
+Para realizar las predicciones hay dos opciones: predicción simple y diferencia con la media.
+
+De manera análoga a las métricas, en este caso se trata simplemente de implementar las formulas matemáticas presentadas en las diapositivas.
+
+  1. **Predicción simple**
+
+  ![Cap_simple](./img/prediccion_simple.png)
+
+  2. **Diferencia con la media**
+
+  ![Cap_diferencia_media](./img/diferencia_media.png)
+
+5. **Rellenar la matriz con las predicciones**
+
+Para este último paso se recorre el vector de usuarios a predecir declarado en el apartado 1. Para cada usuario se recorre todos los item buscando cúales hay que predecir y aplicamos el algoritmo de predicción seleccionado.
+
+Finalmente se devuelve la matriz completa.
