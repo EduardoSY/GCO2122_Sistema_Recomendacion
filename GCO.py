@@ -200,10 +200,10 @@ def show_matriz_similitud():
   print "---------------------"
   print "MATRIZ DE SIMILITUDES"
   for i in range(len(matriz_similitudes)):
-        aux_fila = "[" + str(i) + "] ->  "
+        aux_fila = "[" + str(i) + "] -> \t"
         for j in range(len(matriz_similitudes[i])):
            aux_fila += "{:.4f}".format(matriz_similitudes[i][j])
-           aux_fila += "\t\t"
+           aux_fila += "\t"
         print aux_fila
 
 
