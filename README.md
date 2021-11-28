@@ -119,38 +119,6 @@ Llegados a este punto se tienen los usuarios que han valorado el item i ordenamo
 
 Con estas operaciones hechas se devuelve un vector que cada elemento es una tupla vecino, similitud.
 
-```python
-def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
-    k_vecinos = []
-    fila_usuario_ordenar = deepcopy(matriz_similitudes[usuario_x])
-    if ((metrica == 'pearson') or (metrica == 'coseno')):
-        fila_usuario_ordenar.sort(reverse=True)
-    else:
-        fila_usuario_ordenar.sort(reverse=False)
-    
-    
-    fila_usuario_limpia = deepcopy(matriz_similitudes[usuario_x])
-    fila_usuario_limpia2 = deepcopy(fila_usuario_limpia)
-    vecinos_coincidentes = []
-    
-    
-    for elemento in fila_usuario_ordenar:
-        
-        usuario = fila_usuario_limpia2.index(elemento)
-        fila_usuario_limpia2[usuario] = 0
-        if(matriz[usuario][pos_calcular] != '-'): 
-            vecinos_coincidentes.append(usuario)
-
-    cantidad_vecinos = vecinos_coincidentes[0:neighbors] 
-
-    for i in cantidad_vecinos:
-        valor_similitud = fila_usuario_limpia[i]
-        k_vecinos.append((i, valor_similitud))
-    print "Vecinos utilizados para calcular Usuario " + str(usuario_x) + " -> Item " + str(pos_calcular)
-    print k_vecinos 
-    return k_vecinos #Devuelve un par (usuario, similitud)
-```
-
 ``` python
 def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
     k_vecinos = []
