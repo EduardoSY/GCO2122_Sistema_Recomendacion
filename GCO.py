@@ -257,10 +257,10 @@ parser.add_argument('prediccion',
 args = parser.parse_args()
 
 #Lectura del fichero
-matriz_fichero = args.file.readlines() # Devuelve un vector de strings
+linea_fichero = args.file.readlines() # Devuelve un vector de strings
 matriz = [] # Matriz leida del fichero
 usuarios_predecir = [] #Array con los usuarios de los que debemos predecir valores
-for i in matriz_fichero:
+for i in linea_fichero:
     linea = i.split()
     lineaux = []
     necesita_predecir = False

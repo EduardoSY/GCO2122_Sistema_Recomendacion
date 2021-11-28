@@ -63,6 +63,30 @@ Una vez hecho esto se crea la matriz de similitud. Esta será cuadrada y cuyas d
 
 También se crea un vector donde se almacena qué usuarios tienen algún valor para predecir, es decir, qué usuarios tienen entre sus items un simbolo **-**.
 
+
+```python
+...
+linea_fichero = args.file.readlines()
+matriz = [] 
+usuarios_predecir = [] 
+for i in linea_fichero:
+    linea = i.split()
+    lineaux = []
+    necesita_predecir = False
+    for j in linea:
+        if j != '-':
+            aux = int(j)
+        else:
+            aux = j
+            necesita_predecir = True
+        lineaux.append(aux)
+    if(necesita_predecir == True):
+        usuarios_predecir.append(len(matriz))    
+    matriz.append(lineaux)
+
+matriz_similitudes = [ [ None for y in range(len(matriz)) ] for x in range( len(matriz)) ] #Matriz de similitud rellena de nada
+```
+
 2. **Implementación de métricas**
 
 Con las siguientes funciones podremos calcular la similitud entre un usuario a y un usuario b. En nuestro caso tenemos 3 alternativas.
@@ -94,6 +118,38 @@ Una vez hecho esto se valoran los vecinos que **hayan votado** el item que quere
 Llegados a este punto se tienen los usuarios que han valorado el item i ordenamos en base a la similitud. Ahora solo se seleccional los necesarios en base al número de vecinos seleccionado.
 
 Con estas operaciones hechas se devuelve un vector que cada elemento es una tupla vecino, similitud.
+
+```python
+def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
+    k_vecinos = []
+    fila_usuario_ordenar = deepcopy(matriz_similitudes[usuario_x])
+    if ((metrica == 'pearson') or (metrica == 'coseno')):
+        fila_usuario_ordenar.sort(reverse=True)
+    else:
+        fila_usuario_ordenar.sort(reverse=False)
+    
+    
+    fila_usuario_limpia = deepcopy(matriz_similitudes[usuario_x])
+    fila_usuario_limpia2 = deepcopy(fila_usuario_limpia)
+    vecinos_coincidentes = []
+    
+    
+    for elemento in fila_usuario_ordenar:
+        
+        usuario = fila_usuario_limpia2.index(elemento)
+        fila_usuario_limpia2[usuario] = 0
+        if(matriz[usuario][pos_calcular] != '-'): 
+            vecinos_coincidentes.append(usuario)
+
+    cantidad_vecinos = vecinos_coincidentes[0:neighbors] 
+
+    for i in cantidad_vecinos:
+        valor_similitud = fila_usuario_limpia[i]
+        k_vecinos.append((i, valor_similitud))
+    print "Vecinos utilizados para calcular Usuario " + str(usuario_x) + " -> Item " + str(pos_calcular)
+    print k_vecinos 
+    return k_vecinos #Devuelve un par (usuario, similitud)
+```
 
 ``` python
 def calcular_vecinos(metrica, neighbors, usuario_x, pos_calcular):
@@ -144,3 +200,22 @@ De manera análoga a las métricas, en este caso se trata simplemente de impleme
 Para este último paso se recorre el vector de usuarios a predecir declarado en el apartado 1. Para cada usuario se recorre todos los item buscando cúales hay que predecir y aplicamos el algoritmo de predicción seleccionado.
 
 Finalmente se devuelve la matriz completa.
+
+``` python
+for i in usuarios_predecir: #Usuarios de los que tenemos que predecir
+  for j in range(len(matriz[i])):  #Recorremos buscando posiciones a predecir
+    if (matriz_final[i][j] == '-'): #Encontrada posicion a predecir
+      print "----------------------------------"
+      k = calcular_vecinos(metrica, vecinos, i, j)
+      if(prediccion == "simple"):
+          pred  = prediccion_simple(j, k)
+          
+          print "Resultado prediccion: " + str(pred)
+          matriz_final[i][j] = pred
+      else:
+          
+          pred = prediccion_dif_media(i, j, k)
+          matriz_final[i][j] = pred
+
+          print "\nResultado prediccion - Usuario " + str(i) + " -> Item " + str(j) + " = " + str(pred) + "\n"
+```
